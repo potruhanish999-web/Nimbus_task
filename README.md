@@ -63,8 +63,7 @@ Five queries. "Today" is fixed at `2025-10-30` because the data ends then (using
 | Q5 | Possible duplicate accounts | Score three clues (same cleaned name, same email domain, shared team member); report pairs with two or more |
 
 ```sql
--- Task 1 (easy version) - PostgreSQL, database nimbus_core
--- Note: the data ends on 2025-10-30, so that date is used as "today" instead of NOW().
+-- Task 1 
 SET search_path TO nimbus;
 
 
@@ -217,8 +216,7 @@ The logs are deliberately messy, so the script first cleans them into an `events
 
 ```js
 // =====================================================================
-// Task 2 (simple version) - MongoDB, run in mongosh:
-//     mongosh nimbus_events --file task2_simple.js     (MongoDB 7.0 or newer)
+// Task 2 
 //
 // STEP 0 - the logs do not contain the plan tier, so copy it from SQL once:
 //   psql -d nimbus_core -c "\copy (SELECT DISTINCT ON (c.customer_id) c.customer_id, p.plan_tier
@@ -395,9 +393,7 @@ One row per customer, combining SQL facts (plan, churn, tickets) with Mongo fact
 
 ```python
 """
-Task 3 (simple version): merge, clean, hypothesis test, segmentation.
-Run:  python task3_simple.py
-Needs: pandas numpy scipy scikit-learn statsmodels  (+ psycopg2-binary pymongo for the live databases)
+Task 3 
 """
 import numpy as np
 import pandas as pd
