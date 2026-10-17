@@ -1,5 +1,5 @@
 SET search_path TO nimbus;
-
+---Q1
 SELECT p.plan_name,
        COUNT(DISTINCT s.customer_id)                                     AS active_customers,
        ROUND(AVG(s.mrr_usd), 2)                                          AS avg_monthly_revenue,
@@ -10,6 +10,8 @@ LEFT JOIN support_tickets t ON t.customer_id = s.customer_id
                            AND t.created_at >= DATE '2025-10-30' - INTERVAL '6 months'
 GROUP BY p.plan_id, p.plan_name
 ORDER BY p.plan_id;
+
+---Q2
 
 WITH latest_plan AS (
     SELECT DISTINCT ON (customer_id) customer_id, plan_id
@@ -29,6 +31,8 @@ SELECT plan_tier, customer_id, ROUND(lifetime_value, 2) AS lifetime_value,
                  / AVG(lifetime_value) OVER (PARTITION BY plan_tier), 1) AS pct_diff_from_tier_avg
 FROM ltv
 ORDER BY plan_tier, rank_in_tier;
+
+---Q3
 
 WITH changes AS (
     SELECT customer_id,
@@ -57,6 +61,8 @@ JOIN support_tickets t ON t.customer_id = d.customer_id
 GROUP BY d.customer_id, d.change_date, op.plan_name, np.plan_name
 HAVING COUNT(t.ticket_id) > 3;
 
+
+---Q4
 WITH grid AS (
     SELECT t.plan_tier, m::date AS month
     FROM (SELECT DISTINCT plan_tier FROM plans) t
@@ -96,6 +102,7 @@ SELECT plan_tier, month, new_subs,
 FROM with_avg
 ORDER BY plan_tier, month;
 
+---Q5
 WITH cust AS (
     SELECT customer_id, company_name,
            regexp_replace(lower(company_name), '[^a-z0-9]', '', 'g') AS name_key,
