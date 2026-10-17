@@ -1,4 +1,4 @@
-# NimbusAI Churn & Retention Analysis
+# NimbusAI Churn & Retention Analysis--SCENARIO 1
 
 Data-analyst take-home: why are customers leaving, and what should we do about it?
 Focus area: **customer churn and retention**. Data: PostgreSQL (`nimbus_core`) and MongoDB (`nimbus_events`).
