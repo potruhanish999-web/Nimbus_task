@@ -1,5 +1,6 @@
 db = db.getSiblingDB('nimbus_events');
 
+*/---CLEANING THE DATA----/*
 const parseTime = {
   $cond: [
     { $eq: [{ $type: '$timestamp' }, 'date'] },
@@ -27,6 +28,8 @@ db.user_activity_logs.aggregate([
 ]);
 print('clean events:', db.events.countDocuments(), 'of', db.user_activity_logs.countDocuments());
 
+*/---Q1----/*
+
 print('\nQ1');
 db.events.aggregate([
   { $match: { tier: { $ne: null } } },
@@ -48,6 +51,8 @@ db.events.aggregate([
   { $sort: { _id: 1 } }
 ]).forEach(printjson);
 
+*/---Q2A----/*
+
 print('\nQ2a');
 db.events.aggregate([
   { $match: { feature: { $ne: null } } },
@@ -56,6 +61,8 @@ db.events.aggregate([
   { $group: { _id: '$_id.feature', avg_daily_active_users: { $avg: { $size: '$users' } } } },
   { $sort: { avg_daily_active_users: -1 } }
 ]).forEach(printjson);
+
+*/---Q2B----/*
 
 print('\nQ2b');
 db.events.aggregate([
@@ -69,6 +76,8 @@ db.events.aggregate([
                 retention_7d_pct: { $round: [{ $multiply: [100, { $divide: ['$came_back', '$users'] }] }, 1] } } },
   { $sort: { retention_7d_pct: -1 } }
 ]).forEach(printjson);
+
+*/---Q3----/*
 
 print('\nQ3');
 const steps = ['signup', 'first_login', 'workspace_created', 'first_project', 'invited_teammate'];
@@ -93,6 +102,8 @@ steps.forEach((s, i) => {
         i === 0 ? '' : 'median hours from previous step: ' + (median(hours) === null ? 'n/a' : median(hours).toFixed(1)));
   previous = reached.length;
 });
+
+*/---Q4----/*
 
 print('\nQ4');
 const latest = db.events.find().sort({ time: -1 }).limit(1).toArray()[0].time;
