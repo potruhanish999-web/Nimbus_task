@@ -5,6 +5,8 @@ import statsmodels.api as sm
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
 
+------- 1. LOAD (PostgreSQL + MongoDB)
+
 import psycopg2
 from pymongo import MongoClient
 
@@ -18,6 +20,8 @@ events = pd.DataFrame(list(mongo.user_activity_logs.find({}, {"_id": 0})))
 
 def log(step, before, after):
     print(f"{step:<48} {before:>6} -> {after:>6}")
+
+------ 2. CLEAN: customers
 
 n = len(customers)
 customers = customers.copy()
@@ -34,6 +38,8 @@ log("customers: drop duplicate accounts", n, len(customers))
 customers["signup_date"] = pd.to_datetime(customers["signup_date"], format="mixed")
 customers["churned_at"] = pd.to_datetime(customers["churned_at"], format="mixed")
 customers["churned"] = customers["churned_at"].notna().astype(int)
+
+------- CLEAN: events (Mongo)
 
 n = len(events)
 
@@ -65,6 +71,8 @@ end = events["churned_at"].fillna(data_end)
 events = events[(events["time"] >= events["signup_date"]) & (events["time"] <= end)]
 log("events: keep only signup -> churn window", n, len(events))
 
+------ 3. MERGE: one row per customer
+
 last_sub = subs.sort_values("subscription_id").groupby("customer_id").tail(1)
 last_sub = last_sub.merge(plans[["plan_id", "plan_tier"]], on="plan_id")[["customer_id", "plan_tier", "mrr_usd"]]
 df = customers.merge(last_sub, on="customer_id", how="inner")
@@ -82,6 +90,8 @@ df["events_per_month"] = df["n_events"] / months
 log("final table: customers x (SQL + Mongo)", len(customers), len(df))
 print(f"churn rate = {df.churned.mean():.1%}")
 
+------- 4. HYPOTHESIS TEST
+
 print("\nH0: churn is the same for low-engagement customers and everyone else")
 print("H1: churn is different.   alpha = 0.05   test: chi-square")
 cut = df["events_per_month"].quantile(0.25)
@@ -97,6 +107,8 @@ X = sm.add_constant(pd.DataFrame({"low_engagement": df["low_engagement"],
 model = sm.Logit(df["churned"], X).fit(disp=0)
 print(f"odds ratio (low engagement) = {np.exp(model.params['low_engagement']):.2f}, "
       f"p = {model.pvalues['low_engagement']:.4f}  <- still significant after controlling for tenure")
+
+----- 5. SEGMENTATION
 
 safe_months = np.maximum(months, 3)
 features = pd.DataFrame({"events_per_month": df["n_events"] / safe_months,
